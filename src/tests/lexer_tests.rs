@@ -84,3 +84,27 @@ fn scan_dot() {
     assert_eq!(tokens.len(), 6);
     assert!(matches!(tokens[1].token_type, TokenType::DOT));
 }
+
+#[test]
+fn scan_string() {
+    // arrange
+    let mut lexer = Lexer::new("a = \"hello world\"");
+
+    // act
+    let tokens = lexer.scan();
+
+    // assert
+    assert_eq!(tokens.len(), 4);
+    assert!(matches!(tokens[2].token_type, TokenType::STRING));
+    assert_eq!(tokens[2].lexeme, "hello world".to_string());
+}
+
+#[test]
+#[should_panic(expected = "string on line 1 is not closed")]
+fn scan_string_panic_when_not_closed() {
+    // arrange
+    let mut lexer = Lexer::new("a = \"hello world");
+
+    // act
+    lexer.scan();
+}
