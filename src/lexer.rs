@@ -12,7 +12,6 @@ pub struct Token {
     pub line: u32,
 }
 
-#[derive(Debug)]
 pub enum TokenType {
     // Punctuation
     DOT,
