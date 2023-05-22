@@ -71,7 +71,13 @@ impl Lexer {
                 '"' => {
                     tokens.push(self.get_string());
                 }
-                _ => tokens.push(self.get_identifier())
+                _ => {
+                    if Self::is_numeric(c) {
+                        tokens.push(self.get_number());
+                    } else if Self::is_alphanumeric(c) {
+                        tokens.push(self.get_identifier());
+                    }
+                }
             }
         }
 
@@ -84,6 +90,10 @@ impl Lexer {
         c.is_alphanumeric() || c == '_'
     }
 
+    fn is_numeric(c: char) -> bool {
+        c.is_digit(10)
+    }
+
     fn get_identifier(&mut self) -> Token {
         let condition = |s: &mut Lexer| -> bool { Self::is_alphanumeric(s.source[s.current]) };
         let raw = self.collect_until(condition, None);
@@ -92,6 +102,17 @@ impl Lexer {
             lexeme: raw,
             line: self.line,
             token_type: TokenType::IDENTIFIER
+        }
+    }
+
+    fn get_number(&mut self) -> Token {
+        let condition = |s: &mut Lexer| -> bool { Self::is_numeric(s.source[s.current]) };
+        let raw = self.collect_until(condition, None);
+
+        Token {
+            lexeme: raw,
+            line: self.line,
+            token_type: TokenType::NUMBER
         }
     }
 

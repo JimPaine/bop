@@ -108,3 +108,17 @@ fn scan_string_panic_when_not_closed() {
     // act
     lexer.scan();
 }
+
+#[test]
+fn scan_number() {
+    // arrange
+    let mut lexer = Lexer::new("a = 123");
+
+    // act
+    let tokens = lexer.scan();
+
+    // assert
+    assert_eq!(tokens.len(), 4);
+    assert!(matches!(tokens[2].token_type, TokenType::NUMBER));
+    assert_eq!(tokens[2].lexeme, "123".to_string());
+}
