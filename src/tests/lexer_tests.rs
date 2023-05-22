@@ -122,3 +122,55 @@ fn scan_number() {
     assert!(matches!(tokens[2].token_type, TokenType::NUMBER));
     assert_eq!(tokens[2].lexeme, "123".to_string());
 }
+
+#[test]
+fn scan_decimal_number() {
+    // arrange
+    let mut lexer = Lexer::new("a = 1.23");
+
+    // act
+    let tokens = lexer.scan();
+
+    // assert
+    assert_eq!(tokens.len(), 4);
+    assert!(matches!(tokens[2].token_type, TokenType::NUMBER));
+    assert_eq!(tokens[2].lexeme, "1.23".to_string());
+}
+
+#[test]
+#[should_panic(expected = "number has more than one '.'")]
+fn scan_only_one_decimal_number() {
+    // arrange
+    let mut lexer = Lexer::new("a = 1.2.3");
+
+    // act
+    lexer.scan();
+}
+
+#[test]
+fn scan_negative_number() {
+    // arrange
+    let mut lexer = Lexer::new("a = -123");
+
+    // act
+    let tokens = lexer.scan();
+
+    // assert
+    assert_eq!(tokens.len(), 4);
+    assert!(matches!(tokens[2].token_type, TokenType::NUMBER));
+    assert_eq!(tokens[2].lexeme, "-123".to_string());
+}
+
+#[test]
+fn scan_assume_zero_point_number() {
+    // arrange
+    let mut lexer = Lexer::new("a = .23");
+
+    // act
+    let tokens = lexer.scan();
+
+    // assert
+    assert_eq!(tokens.len(), 4);
+    assert!(matches!(tokens[2].token_type, TokenType::NUMBER));
+    assert_eq!(tokens[2].lexeme, ".23".to_string());
+}

@@ -56,8 +56,12 @@ impl Lexer {
                     continue;
                 },
                 '.' => {
-                    tokens.push(Token { token_type: TokenType::DOT, lexeme: '.'.to_string(), line: self.line});
-                    self.forward();
+                    if !Self::is_numeric(self.peek()) {
+                        tokens.push(Token { token_type: TokenType::DOT, lexeme: '.'.to_string(), line: self.line});
+                        self.forward();
+                    } else {
+                        tokens.push(self.get_number());
+                    }
                 },
                 '\n' => {
                     tokens.push(Token { token_type: TokenType::EOL, lexeme: '\t'.to_string(), line: self.line});
@@ -72,7 +76,7 @@ impl Lexer {
                     tokens.push(self.get_string());
                 }
                 _ => {
-                    if Self::is_numeric(c) {
+                    if Self::is_numeric(c) || c == '-'{
                         tokens.push(self.get_number());
                     } else if Self::is_alphanumeric(c) {
                         tokens.push(self.get_identifier());
@@ -91,7 +95,7 @@ impl Lexer {
     }
 
     fn is_numeric(c: char) -> bool {
-        c.is_digit(10)
+        c.is_digit(10) || c == '.'
     }
 
     fn get_identifier(&mut self) -> Token {
@@ -106,8 +110,15 @@ impl Lexer {
     }
 
     fn get_number(&mut self) -> Token {
+        if self.source[self.current] == '-' {
+            self.forward();
+        }
         let condition = |s: &mut Lexer| -> bool { Self::is_numeric(s.source[s.current]) };
         let raw = self.collect_until(condition, None);
+
+        if raw.matches('.').count() > 1 {
+            panic!("number has more than one '.'");
+        }
 
         Token {
             lexeme: raw,
@@ -151,6 +162,10 @@ impl Lexer {
         } else {
             String::from_iter(self.source[self.start..self.current].iter())
         }
+    }
+
+    fn peek(&mut self) -> char {
+        self.source[self.current + 1]
     }
 
     fn forward(&mut self) {
