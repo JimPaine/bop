@@ -56,6 +56,10 @@ impl Lexer {
                     self.forward();
                     continue;
                 },
+                '.' => {
+                    tokens.push(Token { token_type: TokenType::DOT, lexeme: '.'.to_string(), line: self.line});
+                    self.forward();
+                },
                 '\n' => {
                     tokens.push(Token { token_type: TokenType::EOL, lexeme: '\t'.to_string(), line: self.line});
                     self.line += 1;

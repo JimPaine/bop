@@ -71,3 +71,16 @@ fn scan_short_identifier() {
     assert_eq!(tokens[0].lexeme, "a");
     assert_eq!(tokens[2].lexeme, "b");
 }
+
+#[test]
+fn scan_dot() {
+    // arrange
+    let mut lexer = Lexer::new("a.b = x");
+
+    // act
+    let tokens = lexer.scan();
+
+    // assert
+    assert_eq!(tokens.len(), 6);
+    assert!(matches!(tokens[1].token_type, TokenType::DOT));
+}
