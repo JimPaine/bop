@@ -32,7 +32,7 @@ pub enum TokenType {
 
 impl Lexer {
 
-    pub fn new(source: String) -> Lexer {
+    pub fn new(source: &str) -> Lexer {
         Lexer {
             source: source.chars().collect(),
             start: 0,
@@ -47,7 +47,6 @@ impl Lexer {
 
         for i in 0..self.source.len() {
             if self.current == self.source.len() {
-                tokens.push(Token { token_type: TokenType::EOF, lexeme: '\0'.to_string(), line: self.line});
                 break;
             }
             self.start = self.current;
@@ -69,6 +68,8 @@ impl Lexer {
                 _ => tokens.push(self.get_identifier())
             }
         }
+
+        tokens.push(Token { token_type: TokenType::EOF, lexeme: '\0'.to_string(), line: self.line});
 
         tokens
     }
