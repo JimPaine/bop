@@ -1,32 +1,11 @@
+
+use crate::models::{Token, TokenType};
 pub struct Lexer {
     start: usize,
     current: usize,
     line: u32,
     tokens: Vec<Token>,
     source: Vec<char>
-}
-
-pub struct Token {
-    pub token_type: TokenType,
-    pub lexeme: String,
-    pub line: u32,
-}
-
-pub enum TokenType {
-    // Punctuation
-    DOT,
-
-    // Operators
-    ASSIGN,
-
-    // Literals
-    IDENTIFIER,
-    STRING,
-    NUMBER,
-
-    // MISC
-    EOL,
-    EOF
 }
 
 impl Lexer {
@@ -90,14 +69,6 @@ impl Lexer {
         tokens
     }
 
-    fn is_alphanumeric(c: char) -> bool {
-        c.is_alphanumeric() || c == '_'
-    }
-
-    fn is_numeric(c: char) -> bool {
-        c.is_digit(10) || c == '.'
-    }
-
     fn get_identifier(&mut self) -> Token {
         let condition = |s: &mut Lexer| -> bool { Self::is_alphanumeric(s.source[s.current]) };
         let raw = self.collect_until(condition, None);
@@ -143,7 +114,6 @@ impl Lexer {
             line: self.line,
             token_type: TokenType::STRING
         }
-
     }
 
     fn collect_until(&mut self, condition: impl Fn(&mut Lexer) -> bool, eof_reached_error: Option<String>) -> String {
@@ -157,11 +127,7 @@ impl Lexer {
             }
         }
 
-        if self.start == self.current {
-            self.source[self.current].to_string()
-        } else {
-            String::from_iter(self.source[self.start..self.current].iter())
-        }
+        String::from_iter(self.source[self.start..self.current].iter())
     }
 
     fn peek(&mut self) -> char {
@@ -170,6 +136,14 @@ impl Lexer {
 
     fn forward(&mut self) {
         self.current += 1
+    }
+
+    fn is_alphanumeric(c: char) -> bool {
+        c.is_alphanumeric() || c == '_'
+    }
+
+    fn is_numeric(c: char) -> bool {
+        c.is_digit(10) || c == '.'
     }
 
 }
