@@ -1,4 +1,4 @@
-use crate::parser::{Parser, Expression};
+use crate::parser::{Parser};
 use crate::models::{Token, TokenType};
 
 #[test]
@@ -16,12 +16,9 @@ fn parse_property_assigned_property() {
     let expressions = parser.parse();
 
     // assert
-    assert!(
-        matches!(&expressions[0], Expression::Assignment(l, r)
-            if matches!(&*l.name(), "a")
-            && matches!(&*r.name(), "b")
-        )
-    );
+    assert_eq!(expressions[0].left.name, "a");
+    assert_eq!(expressions[0].right.display(), "b");
+    assert_eq!(expressions[0].right.typename(), "PropertyExpression");
 }
 
 #[test]
@@ -39,12 +36,9 @@ fn parse_property_assigned_string() {
     let expressions = parser.parse();
 
     // assert
-    assert!(
-        matches!(&expressions[0], Expression::Assignment(l, r)
-            if matches!(&*l.name(), "a")
-            && matches!(&*r.name(), "b")
-        )
-    );
+    assert_eq!(expressions[0].left.name, "a");
+    assert_eq!(expressions[0].right.display(), "b");
+    assert_eq!(expressions[0].right.typename(), "ConstantExpression<String>");
 }
 
 #[test]
@@ -62,12 +56,9 @@ fn parse_property_assigned_number() {
     let expressions = parser.parse();
 
     // assert
-    assert!(
-        matches!(&expressions[0], Expression::Assignment(l, r)
-            if matches!(&*l.name(), "a")
-            && matches!(&*r.name(), "123")
-        )
-    );
+    assert_eq!(expressions[0].left.name, "a");
+    assert_eq!(expressions[0].right.display(), "123");
+    assert_eq!(expressions[0].right.typename(), "ConstantExpression<f32>");
 }
 
 #[test]

@@ -3,26 +3,55 @@ pub struct Parser {
     tokens: Vec<Token>
 }
 
-pub enum Expression {
-    Assignment(Box<Expression>, Box<Expression>),
-    Identifier(String),
-    StringLiteral(String),
-    NumberLiteral(i32)
+pub struct PropertyExpression {
+    pub name: String,
+    pub child: Option<Box<PropertyExpression>>
 }
-
-impl Expression {
-    pub fn name(&self) -> String {
-        match &self {
-            Expression::Identifier(s) => s.to_string(),
-            Expression::StringLiteral(s) => s.to_string(),
-            Expression::NumberLiteral(i) => i.to_string(),
-            _ => panic!("Expression not implemented")
-        }
+impl ExpressionEvaluator for PropertyExpression {
+    fn display(&self) -> String {
+        self.name.clone()
+    }
+    fn typename(&self) -> String {
+        String::from("PropertyExpression")
     }
 }
 
+pub struct AssignmentExpression {
+    pub left: PropertyExpression,
+    pub right: Box<dyn ExpressionEvaluator>
+}
+
+pub struct ConstantExpression<T> {
+    pub value: T
+}
+impl ExpressionEvaluator for ConstantExpression<f32> {
+    fn display(&self) -> String {
+        self.value.to_string()
+    }
+    fn typename(&self) -> String {
+        String::from("ConstantExpression<f32>")
+    }
+}
+
+impl ExpressionEvaluator for ConstantExpression<String> {
+    fn display(&self) -> String {
+        self.value.to_string()
+    }
+    fn typename(&self) -> String {
+        String::from("ConstantExpression<String>")
+    }
+}
+
+pub trait ExpressionEvaluator {
+    fn display(&self) -> String;
+    fn typename(&self) -> String;
+}
+
 pub trait Visitor {
-    fn visit_token(&self, token: &Token, current_index: usize) -> Expression;
+    fn visit_assignment(&self, token: &Token, current_index: usize) -> AssignmentExpression;
+    fn visit_identifier(&self, token: &Token) -> PropertyExpression;
+    fn visit_string(&self, token: &Token) -> ConstantExpression<String>;
+    fn visit_number(&self, token: &Token) -> ConstantExpression<f32>;
 }
 
 impl Parser {
@@ -32,52 +61,52 @@ impl Parser {
         }
     }
 
-    pub fn parse(&mut self) -> Vec<Expression> {
+    pub fn parse(&mut self) -> Vec<AssignmentExpression> {
         let mut expressions = Vec::new();
         for i in 0..self.tokens.len() {
             match self.tokens[i].token_type {
                 TokenType::ASSIGN => {
                     if i == 0 { panic!("First token can not be an assignment token!"); }
                     let ref t = self.tokens[i];
-                    expressions.push(self.visit_token(t, i));
+                    expressions.push(self.visit_assignment(t, i));
                 },
                 _ => { },
             }
         }
         expressions
     }
-
-    fn error_on_no_match(actual: &TokenType, allowed: Vec<TokenType>, error_details: &str) {
-        if !allowed.contains(actual) {
-            panic!("Token type of {:?} is not allowed {}", actual, error_details);
-        }
-    }
-
 }
 
 impl Visitor for Parser {
-    fn visit_token(&self, token: &Token, current_index: usize) -> Expression {
-        match token.token_type {
-            TokenType::ASSIGN => {
+    fn visit_assignment(&self, token: &Token, current_index: usize) -> AssignmentExpression {
+        let ref lhs = self.tokens[current_index - 1];
+        let left = match self.tokens[current_index - 1].token_type {
+            TokenType::IDENTIFIER => self.visit_identifier(lhs),
+            _ => panic!("Token type of {:?} is not allowed on the left hand side of an assignment", lhs.token_type)
+        };
 
-                let ref lhs = self.tokens[current_index - 1];
-                Self::error_on_no_match(&lhs.token_type, vec![{TokenType::IDENTIFIER}], "on the left hand side of an assignment");
+        let ref rhs = self.tokens[current_index + 1];
 
-
-                let ref rhs = self.tokens[current_index + 1];
-                Self::error_on_no_match(&rhs.token_type, vec![{TokenType::IDENTIFIER}, {TokenType::STRING}, {TokenType::NUMBER}], "on the right hand side of an assignment");
-
-                Expression::Assignment(
-                    Box::new(self.visit_token(lhs, current_index)),
-                    Box::new(self.visit_token(rhs, current_index)))
-            },
-            TokenType::IDENTIFIER => Expression::Identifier(token.lexeme.clone()),
-            TokenType::STRING => Expression::StringLiteral(token.lexeme.clone()),
-            TokenType::NUMBER => match token.lexeme.parse::<i32>() {
-                Ok(i) => Expression::NumberLiteral(i),
-                Err(e) => panic!("Value is not valid for token type of NUMBER - {}", e),
-            },
-            _ => panic!("Token Type of {:?} is not implemented in the parser", token.token_type)
+        match rhs.token_type {
+            TokenType::IDENTIFIER => AssignmentExpression { left: left, right: Box::new(self.visit_identifier(rhs)) },
+            TokenType::STRING => AssignmentExpression { left: left, right: Box::new(self.visit_string(rhs)) },
+            TokenType::NUMBER => AssignmentExpression { left: left, right: Box::new(self.visit_number(rhs)) },
+            _ => panic!("Token type of {:?} is not allowed on the right hand side of an assignment", rhs.token_type)
         }
+    }
+
+    fn visit_identifier(&self, token: &Token) -> PropertyExpression {
+        PropertyExpression { name: token.lexeme.clone(), child: None }
+    }
+
+    fn visit_string(&self, token: &Token) -> ConstantExpression<String> {
+        ConstantExpression { value: token.lexeme.clone() }
+    }
+
+    fn visit_number(&self, token: &Token) -> ConstantExpression<f32> {
+        ConstantExpression::<f32> { value: match token.lexeme.parse::<f32>() {
+            Ok(i) => i,
+            Err(e) => panic!("Value is not valid for token type of NUMBER - {}", e),
+        }}
     }
 }
