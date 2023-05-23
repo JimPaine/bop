@@ -1,5 +1,5 @@
-use crate::lexer::{Lexer};
-use crate::models::{TokenType};
+use crate::lexer::Lexer;
+use crate::models::TokenType;
 
 #[test]
 fn scan_identifier() {
