@@ -4,15 +4,16 @@ bop is new language that is focused on simplifying and optimizing the transforma
 
 ## working spec
 
-a `.bop` file will contain mapping definitions like so
+A `.bop` file will contain mapping definitions like so
 
 ```
 bankA.transfer.account_number   = bankB.transfer.accountNo
 bankA.transfer.amount           = bankB.transfer.value
 bankA.transfer.currency         = bankB.transfer.currency_symbol
+bankA.transfer.account_name     = bankB.transfer.holders_firstname + " " + bankB.transfer.holders_surname
 ```
 
-From this we will then use the `lexer` which will remove empty space and generate a flattened vector like so:
+The `lexer` will then remove empty space and generate a flattened vector like so:
 
 - bankA
 - .
@@ -27,11 +28,11 @@ From this we will then use the `lexer` which will remove empty space and generat
 - accountNo
 - EOL
 
-The parse then picks this up and returns a vector of small syntax tress
+The parser then picks this up and returns a vector of small syntax tress
 
 > These all have a root node of assign
 
-From here will still need to work out some details ::laugh:: of the compiler backend!
+From here will still need to work out some details of the compiler backend!
 
 ## planning
 
@@ -43,3 +44,8 @@ From here will still need to work out some details ::laugh:: of the compiler bac
     - xml
     - grpc
     - all above via batch file?
+- mapping functions
+    - conditional mapping
+    - string functions i.e. split, first, last, upper, concat
+    - adapters
+        - enum mapping (when list values differ)
