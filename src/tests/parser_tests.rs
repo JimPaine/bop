@@ -107,3 +107,52 @@ fn parse_panic_assign_is_first() {
     // act
     parser.parse();
 }
+
+#[test]
+fn parse_nested_property_assigned_property() {
+    // arrange
+    let tokens = vec![
+        {Token { token_type: TokenType::IDENTIFIER, lexeme: "a".to_string(), line: 1 }},
+        {Token { token_type: TokenType::DOT, lexeme: ".".to_string(), line: 1 }},
+        {Token { token_type: TokenType::IDENTIFIER, lexeme: "b".to_string(), line: 1 }},
+        {Token { token_type: TokenType::ASSIGN, lexeme: "=".to_string(), line: 1 }},
+        {Token { token_type: TokenType::IDENTIFIER, lexeme: "c".to_string(), line: 1 }},
+        {Token { token_type: TokenType::EOF, lexeme: '\0'.to_string(), line: 1 }},
+    ];
+    let mut parser = Parser::new(tokens);
+
+    // act
+    let expressions = parser.parse();
+
+    // assert
+    assert_eq!(expressions[0].left.name, "a");
+    assert!(matches!(&expressions[0].left.child, Some(c) if *c.name == "b".to_string()));
+    assert_eq!(expressions[0].right.display(), "c");
+    assert_eq!(expressions[0].right.typename(), "PropertyExpression");
+}
+
+#[test]
+fn parse_nested_nested_property_assigned_property() {
+    // arrange
+    let tokens = vec![
+        {Token { token_type: TokenType::IDENTIFIER, lexeme: "a".to_string(), line: 1 }},
+        {Token { token_type: TokenType::DOT, lexeme: ".".to_string(), line: 1 }},
+        {Token { token_type: TokenType::IDENTIFIER, lexeme: "b".to_string(), line: 1 }},
+        {Token { token_type: TokenType::DOT, lexeme: ".".to_string(), line: 1 }},
+        {Token { token_type: TokenType::IDENTIFIER, lexeme: "c".to_string(), line: 1 }},
+        {Token { token_type: TokenType::ASSIGN, lexeme: "=".to_string(), line: 1 }},
+        {Token { token_type: TokenType::IDENTIFIER, lexeme: "d".to_string(), line: 1 }},
+        {Token { token_type: TokenType::EOF, lexeme: '\0'.to_string(), line: 1 }},
+    ];
+    let mut parser = Parser::new(tokens);
+
+    // act
+    let expressions = parser.parse();
+
+    // assert
+    assert_eq!(expressions[0].left.name, "a");
+
+    assert!(matches!(
+        &expressions[0].left.child, Some(c) if *c.name == "b".to_string()
+        && matches!(&c.child, Some(gc) if *gc.name == "c".to_string())));
+}
