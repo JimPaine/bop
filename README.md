@@ -36,6 +36,9 @@ From here will still need to work out some details of the compiler backend!
 
 ## planning
 
+- Optimize right away in the parse?
+    - insure all output root nodes are the same i.e. 1 output multiple in
+    - build a large tree rather than 1 per assignment? like this better!
 - Generation of types to be done dynamically or from a defined schema (this would be good for VSCode extension)
 - optimize null checking on source object
 - optimize initialization of target object i.e. don't conditional check the root every assignment
